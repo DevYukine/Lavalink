@@ -14,7 +14,8 @@ import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceM
 import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
-import com.sedmelluq.lava.extensions.youtuberotator.YoutubeIpRotator
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeHttpContextFilter
+import com.sedmelluq.lava.extensions.youtuberotator.YoutubeIpRotatorSetup
 import com.sedmelluq.lava.extensions.youtuberotator.planner.AbstractRoutePlanner
 import com.sedmelluq.lava.extensions.youtuberotator.planner.BalancingIpRoutePlanner
 import com.sedmelluq.lava.extensions.youtuberotator.planner.NanoIpRoutePlanner
@@ -27,7 +28,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.net.InetAddress
 import java.util.function.Predicate
-import java.util.function.Supplier
 
 /**
  * Created by napster on 05.03.18.
@@ -48,7 +48,10 @@ class AudioPlayerConfiguration {
         if (sources.isYoutube) {
             val youtube = YoutubeAudioSourceManager(serverConfig.isYoutubeSearchEnabled)
             if (routePlanner != null) {
-                YoutubeIpRotator.setup(youtube, routePlanner)
+                YoutubeIpRotatorSetup(routePlanner)
+                        .forSource(youtube)
+                        .withSearchDelegateFilter(YoutubeHttpContextFilter())
+                        .setup()
             }
             val playlistLoadLimit = serverConfig.youtubePlaylistLoadLimit
             if (playlistLoadLimit != null) youtube.setPlaylistPageCount(playlistLoadLimit)
